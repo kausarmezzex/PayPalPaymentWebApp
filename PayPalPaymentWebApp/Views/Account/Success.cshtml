@@ -1,0 +1,24 @@
+﻿@{
+    ViewData["Title"] = "Payment Successful";
+    var tokens = Model as List<string>;
+}
+
+<h2>Payment Successful</h2>
+<p>Your payment was successfully processed.</p>
+
+@if (tokens != null && tokens.Any())
+{
+    <p>Your payment tokens:</p>
+    <ul>
+        @foreach (var token in tokens)
+        {
+            <li><strong>@token</strong></li>
+        }
+    </ul>
+}
+else
+{
+    <p>No tokens were generated.</p>
+}
+
+<a href="@Url.Action("Index", "Home")" class="btn btn-success">Go to Home</a>

@@ -1,0 +1,302 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - YourWebsiteName</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/registration.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <style>
+        /* Testimonials Section */
+        .testimonials {
+            background-color: #f5f5f5;
+            padding: 60px 0;
+            text-align: center;
+        }
+
+            .testimonials h2 {
+                font-weight: bold;
+                margin-bottom: 30px;
+            }
+
+            .testimonials p {
+                font-style: italic;
+                font-size: 1.2rem;
+                margin-bottom: 20px;
+                color: #555;
+            }
+
+            .testimonials .quote {
+                margin-top: 20px;
+                color: #333;
+            }
+
+            .testimonials .quote-author {
+                font-weight: bold;
+                margin-top: 15px;
+            }
+
+            .testimonials .arrow {
+                font-size: 2rem;
+                color: #777;
+                cursor: pointer;
+                transition: color 0.3s ease;
+            }
+
+                .testimonials .arrow:hover {
+                    color: #333;
+                }
+
+        /* Footer Section */
+        footer {
+            background-color: #000;
+            color: #fff;
+            padding: 40px 0;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+            .footer-logo img {
+                width: 70px;
+                height: auto;
+                margin-right: 15px;
+            }
+
+            .footer-logo h4 {
+                font-weight: bold;
+            }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+
+            .footer-links li {
+                margin-bottom: 10px;
+            }
+
+            .footer-links a {
+                color: #fff;
+                text-decoration: none;
+                transition: color 0.3s ease;
+            }
+
+                .footer-links a:hover {
+                    color: #f39c12;
+                }
+
+        .footer-contact p {
+            margin-bottom: 0;
+        }
+
+        .footer-contact a {
+            color: #f39c12;
+            text-decoration: none;
+        }
+
+        .social-icons {
+            margin-top: 20px;
+        }
+
+            .social-icons a {
+                color: #fff;
+                font-size: 1.5rem;
+                margin-right: 15px;
+                transition: color 0.3s ease;
+            }
+
+                .social-icons a:hover {
+                    color: #f39c12;
+                }
+
+        .copyright {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        header {
+            background-image: url('/images/home_banner.jpg');
+            background-size: cover;
+            background-position: center;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            height: 400px;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .logo img {
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        .menu {
+            list-style: none;
+            display: flex;
+        }
+
+            .menu li {
+                margin: 0 15px;
+            }
+
+                .menu li a {
+                    color: white;
+                    text-decoration: none;
+                    font-weight: bold;
+                }
+
+        .hero {
+            margin-bottom: 80px; /* Adds a gap between hero and cta-button */
+        }
+
+        .about-section img {
+            max-width: 70%;
+            height: auto;
+            margin-bottom: 20px;
+            border: 5px solid #ccc; /* Adds a 5px solid border with a light gray color */
+            border-radius: 10px; /* Optional: Adds rounded corners to the border */
+        }
+
+        .cta-button .btn-register {
+            background-color: #f39c12;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+            .cta-button .btn-register:hover {
+                background-color: #e67e22; /* Hover effect */
+                color: white;
+            }
+
+        .about-section {
+            padding: 50px 0;
+        }
+
+            .about-section img {
+                max-width: 100%;
+                height: auto;
+                margin-bottom: 20px;
+            }
+
+            .about-section p {
+                font-size: 1.2em;
+                margin-bottom: 30px; /* Adds a 20px gap between the paragraph and the button */
+            }
+
+
+            .about-section p {
+                font-size: 1.2em;
+            }
+
+            .about-section .btn-read-more {
+                background-color: #f39c12;
+                color: white;
+                padding: 10px 20px;
+                text-decoration: none;
+                border-radius: 5px;
+                font-weight: bold;
+            }
+
+        .footer-logo .logo-img {
+            width: 140px; /* Adjust width as needed */
+            height: auto; /* Maintains aspect ratio */
+            margin-right: 15px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <img src="/images/logo.png" alt="Organization Logo" style="width: 150px; height: auto;" />
+            </div>
+
+            <ul class="menu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About Us</a></li>
+                <li><a href="/contact">Contact Us</a></li>
+            </ul>
+        </nav>
+        <div class="hero">
+            <h1>We are an organization committed to [Your Mission Statement]</h1>
+        </div>
+        <div class="remaining-tickets">
+            <p><strong>Tickets Left:</strong> @ViewData["RemainingTickets"]</p>
+        </div>
+        <div class="cta-button">
+            <a href="@Url.Action("Register", "Account")" class="btn-register">Registration</a>
+        </div>
+
+    </header>
+
+
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- Footer Section -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="footer-logo">
+                        <img src="~/images/logo.png" alt="Logo" class="logo-img">
+                    </div>
+
+                    <p>
+                        Our Hindu organisation is dedicated to sharing the rich and diverse heritage of Hinduism with the local community in Sutton Coldfield,
+                        located in the United Kingdom.
+                    </p>
+                    <div class="social-icons">
+                        <a href="#"><i class="ri-facebook-fill"></i></a>
+                        <a href="#"><i class="ri-mail-fill"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <h5>Useful Links</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Get In Touch With Us</h5>
+                    <p>
+                        Learn more about Sutton Coldfield Hindu Association. Mail us at <a href="mailto:sha.suttonhindu@gmail.com">sha.suttonhindu@gmail.com</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            &copy; Copyright 2024. All Rights Reserved.
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
