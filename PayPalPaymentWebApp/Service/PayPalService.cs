@@ -12,11 +12,12 @@ public class PayPalService
     private readonly string _clientId;
     private readonly string _secret;
     private readonly HttpClient _httpClient;
-
-    public PayPalService(string clientId, string secret)
+    private readonly string _apiUrl;
+    public PayPalService(string clientId, string secret, string apiUrl)
     {
         _clientId = clientId;
         _secret = secret;
+        _apiUrl = apiUrl;
         _httpClient = new HttpClient();
     }
 
@@ -32,7 +33,7 @@ public class PayPalService
 
         try
         {
-            var response = await _httpClient.PostAsync("https://api.sandbox.paypal.com/v1/oauth2/token", new FormUrlEncodedContent(requestBody));
+            var response = await _httpClient.PostAsync($"{_apiUrl}", new FormUrlEncodedContent(requestBody));
             response.EnsureSuccessStatusCode();
 
             var responseContent = await response.Content.ReadAsStringAsync();

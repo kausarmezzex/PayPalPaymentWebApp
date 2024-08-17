@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using PayPalPaymentWebApp.Data;
 using PayPalPaymentWebApp.Models;
 using System;
@@ -23,17 +24,11 @@ namespace PayPalPaymentWebApp.Controllers
             _configuration = configuration;
             ViewData["RemainingTickets"] = GetRemainingTickets();
         }
-        public int GetRemainingTickets()
-        {
-            int maxTickets = int.Parse(_configuration["TicketSettings:TotalTickets"]);
-            int currentTicketCount = _context.PaymentTokens.Count();
-            return maxTickets - currentTicketCount;
-        }
-
 
         [HttpGet]
         public IActionResult Register()
         {
+            ViewData["RemainingTickets"] = GetRemainingTickets();
             return View();
         }
 
@@ -44,26 +39,39 @@ namespace PayPalPaymentWebApp.Controllers
             {
                 if (model.PasswordHash != confirmPassword)
                 {
-                    ModelState.AddModelError("", "Passwords do not match");
+                    ModelState.AddModelError("", "Passwords do not match.");
                     return View(model);
                 }
 
-                // Hash the password before saving using BCrypt
+                // Check ticket availability
+                int maxTickets = int.Parse(_configuration["TicketSettings:TotalTickets"]);
+                int currentTicketCount = await _context.PaymentTokens.CountAsync();
+                int remainingTickets = maxTickets - currentTicketCount;
+
+                if (model.NumberOfTickets > remainingTickets)
+                {
+                    ViewData["RemainingTickets"] = GetRemainingTickets();
+                    ModelState.AddModelError("", $"You are trying to book {model.NumberOfTickets} tickets, but only {remainingTickets} tickets are available.");
+                    return View(model);
+                }
+
+                // Hash the password before saving
                 model.PasswordHash = HashPassword(model.PasswordHash);
 
                 // Save user details to the database
                 _context.Users.Add(model);
                 await _context.SaveChangesAsync();
 
-                // Redirect to the payment process, passing the user model
+                // Redirect to the payment process, passing the user model and number of tickets
                 return RedirectToAction("ProcessPayment", new { userId = model.UserId });
             }
+
             return View(model);
         }
 
+
         private string HashPassword(string password)
         {
-            // Using BCrypt to securely hash passwords
             return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
@@ -71,41 +79,36 @@ namespace PayPalPaymentWebApp.Controllers
         {
             try
             {
-                // Retrieve the user's information from the database
                 var user = await _context.Users.FindAsync(userId);
                 if (user == null)
                 {
-                    // If the user does not exist, return an error view or a not found result
                     ModelState.AddModelError("", "User not found.");
                     return View("Error");
                 }
 
-                // Get the PayPal access token
+                // Calculate the total amount based on the number of tickets
+                decimal ticketPrice = decimal.Parse(_configuration["TicketSettings:TicketPrice"]);
+                decimal totalAmount = ticketPrice * user.NumberOfTickets;
+
                 var accessToken = await _payPalService.GetAccessTokenAsync();
+                var paymentResponse = await CreatePayPalPayment(accessToken, user, totalAmount);
 
-                // Use the access token to create a payment request to PayPal
-                var paymentResponse = await CreatePayPalPayment(accessToken, user);
-
-                // Handle payment creation response and redirect to PayPal for approval
                 if (paymentResponse != null)
                 {
-                    // Extract the approval URL from PayPal's response
                     var approvalUrl = paymentResponse.GetApprovalUrl();
                     return Redirect(approvalUrl);
                 }
             }
             catch (Exception ex)
             {
-                // Log the error and redirect to an error view
                 Console.WriteLine($"Error processing payment: {ex.Message}");
                 return View("Error");
             }
 
-            // Handle error case (e.g., failed to create payment)
             return View("Error");
         }
 
-        public async Task<IActionResult> PaymentSuccess(int userId)
+        public async Task<IActionResult> PaymentSuccess(int userId, string paymentId)
         {
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
@@ -114,13 +117,16 @@ namespace PayPalPaymentWebApp.Controllers
                 return View("Error");
             }
 
-            // Get the maximum number of tickets allowed from configuration
-            int maxTickets = int.Parse(_configuration["TicketSettings:TotalTickets"]);
+            // Check if payment has already been processed
+            if (await _context.PaymentTokens.AnyAsync(t => t.PaymentId == paymentId))
+            {
+                ViewData["RemainingTickets"] = GetRemainingTickets();
+                return View("Success", await _context.PaymentTokens.Where(t => t.PaymentId == paymentId).Select(t => t.Token).ToListAsync());
+            }
 
-            // Get the current count of generated tickets
+            int maxTickets = int.Parse(_configuration["TicketSettings:TotalTickets"]);
             int currentTicketCount = await _context.PaymentTokens.CountAsync();
 
-            // Check if generating new tickets would exceed the maximum
             if (currentTicketCount + user.NumberOfTickets > maxTickets)
             {
                 ModelState.AddModelError("", "Not enough tickets left.");
@@ -147,7 +153,8 @@ namespace PayPalPaymentWebApp.Controllers
                 {
                     UserId = userId,
                     Token = token,
-                    PaymentDate = DateTime.UtcNow
+                    PaymentDate = DateTime.UtcNow,
+                    PaymentId = paymentId // Save the payment ID here
                 });
             }
 
@@ -163,46 +170,44 @@ namespace PayPalPaymentWebApp.Controllers
             }
 
             var tokenStrings = paymentTokens.Select(t => t.Token).ToList();
+            ViewData["RemainingTickets"] = GetRemainingTickets();
             return View("Success", tokenStrings);
         }
 
 
 
 
-
-        public IActionResult PaymentCancelled(User model)
+        private async Task<PayPalPaymentResponse> CreatePayPalPayment(string accessToken, User user, decimal totalAmount)
         {
-            // Redirect back to the Register view with the previously entered data
-            ModelState.AddModelError("", "Payment was cancelled. Please try again.");
-            return View("Register", model);
-        }
-
-        private async Task<PayPalPaymentResponse> CreatePayPalPayment(string accessToken, User model)
-        {
-            // Define your payment request payload
             var paymentRequest = new
             {
                 intent = "sale",
                 payer = new { payment_method = "paypal" },
                 transactions = new[]
                 {
-                    new
-                    {
-                        amount = new { total = "10.00", currency = "USD" },
-                        description = "Registration Fee"
-                    }
-                },
+                new
+                {
+                    amount = new { total = totalAmount.ToString("F2"), currency = "USD" },
+                    description = "Registration Fee"
+                }
+            },
                 redirect_urls = new
                 {
-                    return_url = Url.Action("PaymentSuccess", "Account", new { userId = model.UserId }, protocol: Request.Scheme),
-                    cancel_url = Url.Action("PaymentCancelled", "Account", new { userId = model.UserId }, protocol: Request.Scheme)
+                    return_url = Url.Action("PaymentSuccess", "Account", new { userId = user.UserId }, protocol: Request.Scheme),
+                    cancel_url = Url.Action("PaymentCancelled", "Account", new { userId = user.UserId }, protocol: Request.Scheme)
                 }
             };
 
-            // Make the request to PayPal
             var paymentResponse = await _payPalService.CreatePaymentAsync(accessToken, paymentRequest);
-
             return paymentResponse;
         }
+
+        protected int GetRemainingTickets()
+        {
+            int maxTickets = int.Parse(_configuration["TicketSettings:TotalTickets"]);
+            int currentTicketCount = _context.PaymentTokens.Count();
+            return maxTickets - currentTicketCount;
+        }
     }
+
 }

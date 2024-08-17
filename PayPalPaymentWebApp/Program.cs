@@ -13,7 +13,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Configure PayPal service with dependency injection
 builder.Services.AddScoped<PayPalService>(sp => new PayPalService(
     clientId: builder.Configuration["PayPal:ClientId"],
+    apiUrl: builder.Configuration["PayPal:ApiUrl"],  // Corrected this line
     secret: builder.Configuration["PayPal:Secret"]));
+
 
 var app = builder.Build();
 

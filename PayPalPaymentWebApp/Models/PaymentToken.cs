@@ -12,5 +12,6 @@ namespace PayPalPaymentWebApp.Models
         public DateTime PaymentDate { get; set; }
 
         public User User { get; set; }
+        public string PaymentId { get; set; }
     }
 }
